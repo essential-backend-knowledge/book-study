@@ -82,7 +82,10 @@
       </a>
     </td>
     <td align="center">
-      <b></b>
+      <a href="https://github.com/essaysir">
+        <img src="https://github.com/essaysir.png" width="120" /><br/>
+        <b>손주선</b>
+      </a>
     </td>
   </tr>
 </table>
