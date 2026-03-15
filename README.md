@@ -11,8 +11,6 @@
 ---
 
 ## 👥 스터디원
-
-## 👥 스터디원
 <table>
   <tr>
     <td align="center">
