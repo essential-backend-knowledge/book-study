@@ -12,6 +12,7 @@
 
 ## 👥 스터디원
 
+## 👥 스터디원
 <table>
   <tr>
     <td align="center">
@@ -44,14 +45,14 @@
         <b>김대진</b>
       </a>
     </td>
-  </tr>
-  <tr>
     <td align="center">
       <a href="https://github.com/adminhelper">
         <img src="https://github.com/adminhelper.png" width="120" /><br/>
         <b>변숭문</b>
       </a>
     </td>
+  </tr>
+  <tr>
     <td align="center">
       <a href="https://github.com/lim-jaein">
         <img src="https://github.com/lim-jaein.png" width="120" /><br/>
@@ -75,6 +76,15 @@
         <img src="https://github.com/katiekim17.png" width="120" /><br/>
         <b>김평숙</b>
       </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/yewonahn">
+        <img src="https://github.com/yewonahn.png" width="120" /><br/>
+        <b>안예원</b>
+      </a>
+    </td>
+    <td align="center">
+      <b></b>
     </td>
   </tr>
 </table>
