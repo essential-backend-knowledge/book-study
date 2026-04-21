@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>네트워크 기초 — 주니어 백엔드 개발자 필수 지식</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"/>
+  <style>
+    /* ===== FONTS ===== */
+    @font-face {
+      font-family:'NanumSquareNeo';
+      src:url(https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareNeo/NanumSquareNeoTTF-aLt.woff2);
+      font-weight:300;font-display:swap;
+    }
+    @font-face {
+      font-family:'NanumSquareNeo';
+      src:url(https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareNeo/NanumSquareNeoTTF-bRg.woff2);
+      font-weight:400;font-display:swap;
+    }
+    @font-face {
+      font-family:'NanumSquareNeo';
+      src:url(https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareNeo/NanumSquareNeoTTF-cBd.woff2);
+      font-weight:700;font-display:swap;
+    }
+    @font-face {
+      font-family:'NanumSquareNeo';
+      src:url(https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareNeo/NanumSquareNeoTTF-dEb.woff2);
+      font-weight:800;font-display:swap;
+    }
+    @font-face {
+      font-family:'NanumSquareNeo';
+      src:url(https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareNeo/NanumSquareNeoTTF-eHv.woff2);
+      font-weight:900;font-display:swap;
+    }
+
+    /* ===== CSS VARIABLES ===== */
+    :root {
+      --bg:          #080d18;
+      --bg-2:        #0d1422;
+      --bg-card:     rgba(255,255,255,0.04);
+      --bg-card-h:   rgba(255,255,255,0.07);
+      --border:      rgba(255,255,255,0.08);
+      --text:        #e2e8f4;
+      --text-dim:    rgba(226,232,244,0.72);
+      --text-muted:  rgba(226,232,244,0.4);
+      --cyan:        #00d4ff;
+      --green:       #3dd68c;
+      --coral:       #ff6b6b;
+      --font:        'NanumSquareNeo','Noto Sans KR',-apple-system,sans-serif;
+      --r:           16px;
+      --r-sm:        8px;
+    }
+
+    /* ===== RESET ===== */
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+
+    /* ===== SCROLL SNAP ===== */
+    html {
+      scroll-snap-type: y mandatory;
+      overflow-y: scroll;
+      height: 100%;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      counter-reset: slide;
+    }
+
+    /* ===== SLIDE BASE ===== */
+    .slide {
+      height: 100vh;
+      overflow: hidden;
+      scroll-snap-align: start;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 80px;
+      counter-increment: slide;
+    }
+
+    .slide--overflow {
+      height: auto;
+      min-height: 100vh;
+      overflow: visible;
+    }
+
+    /* PAGE NUMBER (position:absolute — NOT fixed) */
+    .slide::after {
+      content: counter(slide, decimal-leading-zero) ' / 11';
+      position: absolute;
+      bottom: 40px;
+      right: 40px;
+      font-size: 14px;
+      color: var(--text-dim);
+      opacity: 0.5;
+      font-weight: 400;
+      letter-spacing: 0.05em;
+    }
+
+    /* ===== TITLE SLIDE BACKGROUND ===== */
+    .slide--title {
+      background:
+        radial-gradient(ellipse 80% 55% at 50% 110%, rgba(0,212,255,0.13) 0%, transparent 65%),
+        radial-gradient(ellipse 55% 40% at 85% 15%, rgba(61,214,140,0.09) 0%, transparent 60%),
+        var(--bg);
+    }
+    .slide--title::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+    }
+
+    /* DEFAULT SLIDE BG */
+    .slide--default {
+      background: var(--bg);
+    }
+    .slide--default::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 50% 50% at 100% 0%, rgba(0,212,255,0.04) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 0% 100%, rgba(61,214,140,0.03) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ===== INNER WRAPPER ===== */
+    .slide__inner {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 860px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .slide__inner--wide { max-width: 860px; }
+
+    /* ===== GLOW ORB ===== */
+    .glow-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ===== TYPOGRAPHY ===== */
+    h1 {
+      font-size: clamp(2.25rem, 8vw, 4rem);
+      font-weight: 900;
+      line-height: 1.2;
+    }
+    h2 {
+      font-size: clamp(1.75rem, 5vw, 2.4rem);
+      font-weight: 800;
+      line-height: 1.3;
+    }
+    h3 { font-size: 1.25rem; font-weight: 700; }
+
+    .gradient-text {
+      background: linear-gradient(135deg, var(--cyan) 0%, var(--green) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .em        { color: var(--cyan); }
+    .em--green { color: var(--green); }
+    .em--coral { color: var(--coral); }
+
+    .label {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      align-self: flex-start;
+      width: fit-content;
+    }
+    .label--green { color: var(--green); }
+    .label--coral { color: var(--coral); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: rgba(0,212,255,0.1);
+      border: 1px solid rgba(0,212,255,0.25);
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--cyan);
+      align-self: flex-start;
+      width: fit-content;
+    }
+
+    .subtitle {
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+    .desc {
+      font-size: 16px;
+      line-height: 1.8;
+      color: var(--text-dim);
+    }
+
+    .divider {
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+      border-radius: 2px;
+      margin-bottom: 32px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    .tag--cyan  { background: rgba(0,212,255,0.18);  color: var(--cyan); }
+    .tag--green { background: rgba(61,214,140,0.18); color: var(--green); }
+    .tag--coral { background: rgba(255,107,107,0.18); color: var(--coral); }
+
+    /* ===== CARD GRID ===== */
+    .card-grid { display: grid; gap: 14px; }
+    .card-grid--3 { grid-template-columns: repeat(3,1fr); }
+    .card-grid--4 { grid-template-columns: repeat(2,1fr); }
+
+    .card {
+      background: linear-gradient(145deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .card:hover {
+      background: linear-gradient(145deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.04) 100%);
+      border-color: rgba(0,212,255,0.2);
+    }
+    .card-icon  { font-size: 26px; line-height: 1; }
+    .card-title { font-size: 16px; font-weight: 700; }
+    .card-desc  { font-size: 13px; line-height: 1.7; color: var(--text-dim); }
+
+    /* ===== COMPARISON ===== */
+    .comparison   { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; }
+    .comparison--3 { grid-template-columns: repeat(3,1fr); }
+
+    .comp-col {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: transform 0.3s ease;
+    }
+    .comp-col:hover { transform: translateY(-4px); }
+    .comp-col--cyan  { border-color: rgba(0,212,255,0.28); }
+    .comp-col--green { border-color: rgba(61,214,140,0.28); }
+    .comp-col--coral { border-color: rgba(255,107,107,0.28); }
+
+    .comp-title { font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+
+    .comp-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+    .comp-list li {
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.55;
+      padding-left: 14px;
+      position: relative;
+    }
+    .comp-list li::before        { content:'▸'; position:absolute; left:0; color:var(--cyan); font-size:10px; top:3px; }
+    .comp-list--green li::before { color: var(--green); }
+    .comp-list--coral li::before { color: var(--coral); }
+
+    /* ===== FLOW ===== */
+    .flow { display: flex; align-items: center; width: 100%; }
+
+    .flow-step {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 12px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+    .flow-step .step-sub { font-size: 10px; font-weight: 400; color: var(--text-muted); margin-top: 3px; }
+    .flow-step--cyan  { border-color: rgba(0,212,255,0.35);  background: rgba(0,212,255,0.07); }
+    .flow-step--green { border-color: rgba(61,214,140,0.35); background: rgba(61,214,140,0.07); }
+    .flow-step--coral { border-color: rgba(255,107,107,0.35); background: rgba(255,107,107,0.07); }
+
+    .flow-arrow { font-size: 22px; color: var(--text-muted); margin: 0 8px; flex-shrink: 0; }
+
+    /* ===== NAT ===== */
+    .nat-block { display: flex; flex-direction: column; gap: 10px; }
+    .nat-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      align-self: flex-start;
+      width: fit-content;
+    }
+    .nat-badge--snat { background: rgba(0,212,255,0.13); color: var(--cyan); }
+    .nat-badge--dnat { background: rgba(61,214,140,0.13); color: var(--green); }
+
+    /* ===== 3-WAY HANDSHAKE ===== */
+    .handshake { display: flex; flex-direction: column; gap: 5px; }
+    .hs-row    { display: flex; align-items: center; gap: 4px; }
+    .hs-side   { width: 60px; text-align: center; font-size: 10px; font-weight: 700; color: var(--text-dim); }
+    .hs-msg    { flex: 1; text-align: center; font-size: 10px; font-weight: 700; }
+
+    /* ===== STACK VIZ ===== */
+    .stack-col { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+    .stack-row {
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      padding: 4px 6px;
+      border-radius: 4px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    .stack-row--accent { background: rgba(61,214,140,0.08); border-color: rgba(61,214,140,0.22); color: var(--green); }
+
+    /* ===== CLOSING ===== */
+    .closing-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 20px;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .slide { padding: 40px 24px; }
+      .card-grid--3  { grid-template-columns: 1fr; }
+      .card-grid--4  { grid-template-columns: 1fr; }
+      .comparison    { grid-template-columns: 1fr; }
+      .comparison--3 { grid-template-columns: 1fr; }
+      .flow          { flex-direction: column; gap: 4px; }
+    }
+
+    /* highlight.js override */
+    pre code.hljs { border-radius: var(--r-sm); font-size: 13px; }
+  </style>
+</head>
+<body>
+
+  <!-- ===== SLIDE 1: TITLE ===== -->
+  <section class="slide slide--title">
+    <div class="glow-orb" style="width:450px;height:450px;background:rgba(0,212,255,0.09);top:-120px;right:-80px;"></div>
+    <div class="glow-orb" style="width:320px;height:320px;background:rgba(61,214,140,0.07);bottom:60px;left:160px;"></div>
+    <div class="slide__inner">
+      <div class="badge">📡 주니어 백엔드 개발자 필수 지식</div>
+      <h1 class="gradient-text">네트워크 기초</h1>
+      <p class="subtitle">노드부터 프로토콜까지<br>실무에서 반드시 알아야 할 핵심 개념 정리</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="tag tag--cyan">10장</span>
+        <span class="tag tag--green">8개 챕터</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 2: 노드·네트워크·라우터 ===== -->
+  <section class="slide slide--default">
+    <div class="slide__inner slide__inner--wide">
+      <div class="label">CHAPTER 01</div>
+      <h2>네트워크의 <span class="em">기본 구성요소</span></h2>
+      <div class="divider"></div>
+      <div class="card-grid card-grid--3">
+        <div class="card">
+          <div class="card-icon">🖥️</div>
+          <div class="card-title">노드 (Node)</div>
+          <div class="card-desc">데이터를 송수신하는 모든 장치. 휴대폰, 노트북, 서버 등 네트워크에 연결된 모든 기기가 노드입니다.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">📦</div>
+          <div class="card-title">패킷 (Packet)</div>
+          <div class="card-desc">전송 데이터의 기본 단위. <strong style="color:var(--cyan)">헤더</strong>(발신자·수신자 정보)와 <strong style="color:var(--green)">페이로드</strong>(실제 데이터)로 구성됩니다.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔀</div>
+          <div class="card-title">라우터 (Router)</div>
+          <div class="card-desc">서로 다른 네트워크 간 패킷을 전달하는 장치. 목적지 주소에 따라 다음 라우터를 선택해 전달합니다.</div>
+        </div>
+      </div>
+      <!-- 패킷 구조 다이어그램 -->
+      <div style="font-family:'D2Coding','Fira Code','Courier New',monospace;">
+        <!-- IP 레이어 -->
+        <div style="border:1.5px solid rgba(0,212,255,0.45);border-radius:10px;overflow:hidden;">
+          <!-- IP 헤더 -->
+          <div style="background:rgba(0,212,255,0.07);border-bottom:1px dashed rgba(0,212,255,0.25);padding:8px 14px;display:flex;align-items:baseline;gap:16px;">
+            <span style="font-size:10px;font-weight:700;color:var(--cyan);letter-spacing:0.06em;white-space:nowrap;">헤더 (IP Header)</span>
+            <span style="font-size:12px;color:var(--text-dim);">출발지 IP: <strong style="color:var(--cyan)">192.168.0.10</strong></span>
+            <span style="font-size:12px;color:var(--text-dim);">목적지 IP: <strong style="color:var(--cyan)">223.130.192.248</strong></span>
+          </div>
+          <!-- IP 페이로드 -->
+          <div style="padding:8px 14px 10px;">
+            <div style="font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:0.06em;margin-bottom:7px;">페이로드 (Payload)</div>
+            <!-- TCP 레이어 (중첩) -->
+            <div style="border:1.5px solid rgba(61,214,140,0.4);border-radius:7px;overflow:hidden;">
+              <!-- TCP 헤더 -->
+              <div style="background:rgba(61,214,140,0.07);border-bottom:1px dashed rgba(61,214,140,0.25);padding:7px 12px;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;">
+                <span style="font-size:10px;font-weight:700;color:var(--green);letter-spacing:0.06em;white-space:nowrap;">TCP 헤더</span>
+                <span style="font-size:12px;color:var(--text-dim);">출발지 포트: <strong style="color:var(--green)">54321</strong></span>
+                <span style="font-size:12px;color:var(--text-dim);">목적지 포트: <strong style="color:var(--green)">443</strong></span>
+                <span style="font-size:12px;color:var(--text-dim);">순서 번호: <strong style="color:var(--green)">1</strong></span>
+              </div>
+              <!-- TCP 페이로드 / HTTP -->
+              <div style="padding:7px 12px;">
+                <div style="font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:0.06em;margin-bottom:5px;">페이로드 (HTTP)</div>
+                <div style="font-size:12px;color:var(--coral);">GET /search?q=뭐먹지 HTTP/1.1</div>
+                <div style="font-size:12px;color:var(--text-dim);">Host: www.naver.com</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 3: IP주소와 도메인 ===== -->
+  <section class="slide slide--default">
+    <div class="slide__inner slide__inner--wide">
+      <div class="label label--green">CHAPTER 02</div>
+      <h2>IP 주소와 <span class="em--green">도메인</span></h2>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">노드끼리 통신하려면 서로를 <strong style="color:var(--text-dim)">구분할 주소</strong>가 필요합니다. 그 주소 체계가 IP이고, 사람이 기억하기 쉽게 이름을 붙인 것이 도메인입니다.</p>
+      <div class="divider"></div>
+      <div class="comparison">
+        <div class="comp-col comp-col--cyan">
+          <div class="comp-title"><span class="em">📍 IP 주소</span></div>
+          <ul class="comp-list">
+            <li><strong>IPv4</strong>: 1바이트 × 4 블록 (예: <code style="font-size:11px;color:var(--cyan)">223.130.192.248</code>), 각 블록 0~255</li>
+            <li><strong>IPv6</strong>: 32비트 → 128비트 확장, IPv4 주소 고갈 대응</li>
+            <li>IPv4 아직 주류 → <strong>사설IP + NAT</strong> 덕분에 고갈 지연</li>
+          </ul>
+        </div>
+        <div class="comp-col comp-col--green">
+          <div class="comp-title"><span class="em--green">🌐 도메인 & DNS</span></div>
+          <ul class="comp-list comp-list--green">
+            <li><strong>DNS</strong>: 도메인명 → IP 변환 (인터넷 전화번호부)</li>
+            <li>계층 구조: <code style="font-size:11px;color:var(--green)">www.naver.com</code> = com(1) &gt; naver(2) &gt; www(3)</li>
+            <li><strong>hosts 파일</strong>이 DNS보다 우선 적용</li>
+            <li>도메인 하나 → 여러 IP → <strong>부하 분산</strong> 가능</li>
+          </ul>
+        </div>
+      </div>
+      <div style="background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15);border-radius:var(--r-sm);padding:12px 16px;">
+        <p style="font-size:12px;color:var(--text-dim);line-height:1.6;">
+          💡 <strong style="color:var(--cyan)">hosts 파일 위치</strong> — Linux: <code style="color:var(--cyan)">/etc/hosts</code> &nbsp;|&nbsp; Windows: <code style="color:var(--cyan)">C:\Windows\System32\drivers\etc\hosts</code>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 4: 고정IP vs 동적IP ===== -->
+  <section class="slide slide--default">
+    <div class="slide__inner slide__inner--wide">
+      <div class="label">CHAPTER 03</div>
+      <h2>고정 IP <span class="em" style="font-size:0.65em">vs</span> 동적 IP</h2>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">IP 주소는 어떻게 할당될까요? 서버처럼 <strong style="color:var(--text-dim)">항상 같은 주소</strong>가 필요한 경우도 있고, 가정용 기기처럼 <strong style="color:var(--text-dim)">접속할 때마다 자동으로</strong> 받는 경우도 있습니다.</p>
+      <div class="divider"></div>
+      <div class="comparison">
+        <div class="comp-col comp-col--cyan">
+          <div class="comp-title"><span class="em">🔒 고정 IP</span></div>
+          <ul class="comp-list">
+            <li>IP 주소가 <strong>변하지 않음</strong></li>
+            <li>직접 수동 지정</li>
+            <li>주 사용처: <strong>서버</strong></li>
+            <li>외부에서 항상 같은 주소로 접근 가능</li>
+            <li>관리 비용이 동적 IP 대비 높음</li>
+          </ul>
+        </div>
+        <div class="comp-col comp-col--green">
+          <div class="comp-title"><span class="em--green">🔄 동적 IP와 DHCP</span></div>
+          <ul class="comp-list comp-list--green">
+            <li>네트워크 연결 시마다 IP <strong>자동 할당</strong></li>
+            <li>주 사용처: <strong>가정용 공유기</strong></li>
+            <li>IP 주소 효율적 재활용 가능</li>
+          </ul>
+          <div style="background:rgba(61,214,140,0.06);border:1px solid rgba(61,214,140,0.2);border-radius:var(--r-sm);padding:14px;margin-top:4px;">
+            <p style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:10px;">📋 DHCP 서버 <span style="font-weight:400;color:var(--text-muted);font-size:10px;">(Dynamic Host Configuration Protocol)</span></p>
+            <p style="font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:8px;">IP 설정을 자동으로 배포하는 서버. 가정용 공유기가 이 역할을 담당합니다.</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 8px;">
+              <div style="font-size:12px;color:var(--text-dim);display:flex;align-items:center;gap:5px;"><span style="color:var(--green);font-size:10px;flex-shrink:0;">▸</span>IP 주소</div>
+              <div style="font-size:12px;color:var(--text-dim);display:flex;align-items:center;gap:5px;"><span style="color:var(--green);font-size:10px;flex-shrink:0;">▸</span>게이트웨이</div>
+              <div style="font-size:12px;color:var(--text-dim);display:flex;align-items:center;gap:5px;"><span style="color:var(--green);font-size:10px;flex-shrink:0;">▸</span>서브넷 마스크</div>
+              <div style="font-size:12px;color:var(--text-dim);display:flex;align-items:center;gap:5px;"><span style="color:var(--green);font-size:10px;flex-shrink:0;">▸</span>DNS 서버 주소</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 5: 공인IP vs 사설IP ===== -->
+  <section class="slide slide--default">
+    <div class="slide__inner slide__inner--wide">
+      <div class="label label--coral">CHAPTER 04</div>
+      <h2>공인 IP <span class="em--coral" style="font-size:0.65em">vs</span> 사설 IP</h2>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">그런데 IP 주소라고 다 같은 게 아닙니다. <strong style="color:var(--text-dim)">전 세계에서 접근 가능한 주소</strong>와, <strong style="color:var(--text-dim)">특정 네트워크 안에서만 쓰는 주소</strong>가 따로 존재합니다.</p>
+      <div class="divider"></div>
+      <div class="comparison">
+        <div class="comp-col comp-col--cyan">
+          <div class="comp-title"><span class="em">🌍 공인 IP (Public IP)</span></div>
+          <ul class="comp-list">
+            <li>인터넷에서 접속 가능한 <strong>전 세계 유일</strong>한 주소</li>
+            <li>방화벽 없으면 누구나 접근 가능</li>
+            <li>ISP(Internet Service Provider)가 할당</li>
+            <li>클라우드 서버, 웹 서버에 사용</li>
+          </ul>
+        </div>
+        <div class="comp-col comp-col--coral">
+          <div class="comp-title"><span class="em--coral">🏠 사설 IP (Private IP)</span></div>
+          <ul class="comp-list comp-list--coral">
+            <li>특정 네트워크 내부에서만 유효</li>
+            <li>외부에서 직접 접근 <strong>불가</strong></li>
+            <li>사설 IP 대역:</li>
+            <li style="padding-left:20px;"><code style="font-size:11px;color:var(--coral)">192.168.x.x</code></li>
+            <li style="padding-left:20px;"><code style="font-size:11px;color:var(--coral)">10.x.x.x</code></li>
+            <li style="padding-left:20px;"><code style="font-size:11px;color:var(--coral)">172.16.x.x ~ 172.31.x.x</code></li>
+            <li>다른 네트워크에서 같은 사설 IP → <strong>충돌 없음</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 6: NAT ===== -->
+  <section class="slide slide--default slide--overflow">
+    <div class="slide__inner slide__inner--wide" style="padding:70px 0 80px;">
+      <div class="label">CHAPTER 05</div>
+      <h2>NAT — <span class="em">네트워크 주소 변환</span></h2>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">사설 IP는 외부 인터넷으로 직접 나갈 수 없습니다. 나가려면 <strong style="color:var(--text-dim)">공인 IP로 변환</strong>이 필요하고, 반대로 외부 요청이 내부 서버에 도달하려면 다시 <strong style="color:var(--text-dim)">사설 IP로 되돌려야</strong> 합니다.</p>
+      <p class="desc" style="font-size:14px;">사설 IP ↔ 공인 IP 간 주소를 변환하는 기술. IPv4 고갈 문제를 해결하는 핵심 메커니즘입니다.</p>
+
+      <!-- SNAT -->
+      <div class="nat-block">
+        <span class="nat-badge nat-badge--snat">SNAT — Source NAT</span>
+        <p style="font-size:12px;color:var(--text-muted);">내부 → 외부: 사설 IP를 공인 IP로 변환. <strong style="color:var(--text-dim)">공유기(라우터)</strong>가 담당.</p>
+        <div class="flow">
+          <div class="flow-step">📱 휴대폰<div class="step-sub">192.168.1.10</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step flow-step--cyan">🔀 공유기<div class="step-sub">SNAT 적용</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">📡 공인 IP<div class="step-sub">218.39.xx.xxx</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step flow-step--green">🌐 인터넷</div>
+        </div>
+      </div>
+
+      <!-- DNAT -->
+      <div class="nat-block">
+        <span class="nat-badge nat-badge--dnat">DNAT — Destination NAT</span>
+        <p style="font-size:12px;color:var(--text-muted);">외부 → 내부: 공인 IP를 사설 IP로 변환. <strong style="color:var(--text-dim)">로드밸런서·방화벽</strong>이 담당.</p>
+        <div class="flow">
+          <div class="flow-step">🧑‍💻 클라이언트<div class="step-sub">58.221.x.x</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step flow-step--green">⚖️ 로드밸런서<div class="step-sub">DNAT 적용</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step flow-step--cyan">🖥️ 서버 1<div class="step-sub">10.1.1.101</div></div>
+          <div class="flow-arrow" style="font-size:11px;color:var(--text-muted)">/</div>
+          <div class="flow-step flow-step--cyan">🖥️ 서버 2<div class="step-sub">10.1.1.102</div></div>
+        </div>
+      </div>
+
+      <div style="background:rgba(61,214,140,0.05);border:1px solid rgba(61,214,140,0.15);border-radius:var(--r-sm);padding:12px 16px;">
+        <p style="font-size:12px;color:var(--text-dim);line-height:1.6;">
+          💡 <strong style="color:var(--green)">실무 예시</strong> — musinsa.com 로 들어온 요청을 로드밸런서가 DNAT으로 여러 내부 서버에 트래픽을 분배합니다.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 7: VPN ===== -->
+  <section class="slide slide--default">
+    <div class="slide__inner">
+      <div class="label label--green">CHAPTER 06</div>
+      <h2>VPN — <span class="em--green">가상 사설 네트워크</span></h2>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">사설 IP는 외부에서 직접 접근할 수 없습니다. 그럼 개발자가 집에서 회사 서버에 안전하게 접속하려면 어떻게 해야 할까요?</p>
+      <div class="divider"></div>
+      <p class="desc" style="font-size:14px;">공용 네트워크에서 서로 다른 네트워크 간 <strong style="color:var(--green)">암호화된 연결(터널)</strong>을 제공하는 기술</p>
+
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;">
+        <p style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:10px;letter-spacing:0.05em;">📌 VPN이 필요한 이유</p>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:7px;">
+          <li style="font-size:13px;color:var(--text-dim);padding-left:14px;position:relative;"><span style="position:absolute;left:0;color:var(--green);font-size:10px;top:4px">▸</span>서버 네트워크의 노드들은 사설 IP → 외부에서 직접 접근 불가</li>
+          <li style="font-size:13px;color:var(--text-dim);padding-left:14px;position:relative;"><span style="position:absolute;left:0;color:var(--green);font-size:10px;top:4px">▸</span>모든 서버에 공인 IP를 매핑하면 심각한 보안 위험</li>
+          <li style="font-size:13px;color:var(--text-dim);padding-left:14px;position:relative;"><span style="position:absolute;left:0;color:var(--green);font-size:10px;top:4px">▸</span>집·카페 등 외부 환경에서도 사무실 내부 네트워크처럼 안전하게 접근</li>
+        </ul>
+      </div>
+
+      <div class="flow">
+        <div class="flow-step">🧑‍💻 개발자 PC<div class="step-sub">외부 환경</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step flow-step--green">🔐 VPN 클라이언트</div>
+        <div style="flex:1.5;min-width:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">
+          <span style="font-size:10px;font-weight:700;color:var(--green);white-space:nowrap;letter-spacing:0.04em;">🔒 암호화 터널</span>
+          <span style="font-size:20px;color:var(--green);line-height:1;">──────→</span>
+        </div>
+        <div class="flow-step flow-step--cyan">🏢 VPN 장비<div class="step-sub">사내 네트워크</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">🖥️ 서버 네트워크<div class="step-sub">내부 접근</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 8: TCP vs UDP ===== -->
+  <section class="slide slide--default">
+    <div class="slide__inner slide__inner--wide">
+      <div class="label label--coral">CHAPTER 07 — 1/2</div>
+      <h2>TCP <span class="em--coral" style="font-size:0.65em">vs</span> UDP</h2>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">주소 체계를 알았다면, 이제 <strong style="color:var(--text-dim)">데이터를 실제로 어떻게 주고받을지</strong> 규칙이 필요합니다. 연결을 맺고 신뢰성을 보장할 것인지, 아니면 빠른 속도를 선택할 것인지에 따라 프로토콜이 나뉩니다.</p>
+      <div class="divider"></div>
+      <div class="comparison">
+
+        <!-- TCP -->
+        <div class="comp-col comp-col--cyan">
+          <div class="comp-title"><span class="em">🔗 TCP</span> <span style="font-size:11px;font-weight:400;color:var(--text-muted)">Transmission Control Protocol</span></div>
+          <ul class="comp-list" style="flex:1">
+            <li><strong>연결 기반</strong> — 전송 전 3-Way Handshake 필요</li>
+            <li>패킷 <strong>순서 보장</strong>, 유실 시 재전송</li>
+            <li>높은 신뢰성, 상대적으로 느림</li>
+            <li>HOL(Head-of-Line) 블로킹 문제</li>
+            <li>사용: <strong>HTTP, SMTP, FTP</strong></li>
+          </ul>
+          <div style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px;">
+            <p style="font-size:10px;color:var(--text-muted);margin-bottom:4px;font-weight:700;letter-spacing:0.08em;">3-WAY HANDSHAKE</p>
+            <svg viewBox="0 0 240 148" style="width:100%;height:auto;max-height:125px;display:block;" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="ah-c" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L6,3 z" fill="#00d4ff"/>
+                </marker>
+                <marker id="ah-g" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L6,3 z" fill="#3dd68c"/>
+                </marker>
+              </defs>
+              <text x="36" y="14" text-anchor="middle" font-size="10" fill="rgba(226,232,244,0.65)" font-family="NanumSquareNeo,sans-serif" font-weight="700">클라이언트</text>
+              <text x="204" y="14" text-anchor="middle" font-size="10" fill="rgba(226,232,244,0.65)" font-family="NanumSquareNeo,sans-serif" font-weight="700">서버</text>
+              <line x1="36" y1="18" x2="36" y2="134" stroke="rgba(255,255,255,0.13)" stroke-width="1" stroke-dasharray="3,3"/>
+              <line x1="204" y1="18" x2="204" y2="134" stroke="rgba(255,255,255,0.13)" stroke-width="1" stroke-dasharray="3,3"/>
+              <!-- SYN -->
+              <line x1="40" y1="34" x2="197" y2="54" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#ah-c)"/>
+              <text x="120" y="32" text-anchor="middle" font-size="10" fill="#00d4ff" font-family="NanumSquareNeo,sans-serif" font-weight="700">SYN</text>
+              <!-- SYN-ACK -->
+              <line x1="200" y1="68" x2="43" y2="88" stroke="#3dd68c" stroke-width="1.5" marker-end="url(#ah-g)"/>
+              <text x="120" y="66" text-anchor="middle" font-size="10" fill="#3dd68c" font-family="NanumSquareNeo,sans-serif" font-weight="700">SYN-ACK</text>
+              <!-- ACK -->
+              <line x1="40" y1="102" x2="197" y2="122" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#ah-c)"/>
+              <text x="120" y="100" text-anchor="middle" font-size="10" fill="#00d4ff" font-family="NanumSquareNeo,sans-serif" font-weight="700">ACK</text>
+              <text x="120" y="143" text-anchor="middle" font-size="10" fill="rgba(61,214,140,0.85)" font-family="NanumSquareNeo,sans-serif" font-weight="700">✓ 연결 완료 — 데이터 전송 시작</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- UDP -->
+        <div class="comp-col comp-col--coral">
+          <div class="comp-title"><span class="em--coral">⚡ UDP</span> <span style="font-size:11px;font-weight:400;color:var(--text-muted)">User Datagram Protocol</span></div>
+          <ul class="comp-list comp-list--coral" style="flex:1">
+            <li><strong>비연결</strong> — 연결 과정 없이 즉시 전송</li>
+            <li>순서·유실 <strong>보장 없음</strong></li>
+            <li>빠른 속도, 낮은 오버헤드</li>
+            <li>사용: <strong>DNS, VoIP, 게임, 스트리밍</strong></li>
+          </ul>
+          <div style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px;">
+            <p style="font-size:10px;color:var(--text-muted);margin-bottom:4px;font-weight:700;letter-spacing:0.08em;">CONNECTIONLESS</p>
+            <svg viewBox="0 0 240 148" style="width:100%;height:auto;max-height:125px;display:block;" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="ah-r" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L6,3 z" fill="#ff6b6b"/>
+                </marker>
+              </defs>
+              <text x="36" y="14" text-anchor="middle" font-size="10" fill="rgba(226,232,244,0.65)" font-family="NanumSquareNeo,sans-serif" font-weight="700">클라이언트</text>
+              <text x="204" y="14" text-anchor="middle" font-size="10" fill="rgba(226,232,244,0.65)" font-family="NanumSquareNeo,sans-serif" font-weight="700">서버</text>
+              <line x1="36" y1="18" x2="36" y2="134" stroke="rgba(255,255,255,0.13)" stroke-width="1" stroke-dasharray="3,3"/>
+              <line x1="204" y1="18" x2="204" y2="134" stroke="rgba(255,255,255,0.13)" stroke-width="1" stroke-dasharray="3,3"/>
+              <!-- Data 1 (즉시 전송, 응답 없음) -->
+              <line x1="40" y1="34" x2="197" y2="46" stroke="#ff6b6b" stroke-width="1.5" marker-end="url(#ah-r)"/>
+              <text x="120" y="30" text-anchor="middle" font-size="10" fill="#ff6b6b" font-family="NanumSquareNeo,sans-serif" font-weight="700">Data 1</text>
+              <!-- Data 2 -->
+              <line x1="40" y1="62" x2="197" y2="74" stroke="#ff6b6b" stroke-width="1.5" marker-end="url(#ah-r)"/>
+              <text x="120" y="58" text-anchor="middle" font-size="10" fill="#ff6b6b" font-family="NanumSquareNeo,sans-serif" font-weight="700">Data 2</text>
+              <!-- Data 3 (유실) -->
+              <line x1="40" y1="90" x2="130" y2="100" stroke="#ff6b6b" stroke-width="1.5" stroke-dasharray="4,3"/>
+              <text x="85" y="86" text-anchor="middle" font-size="10" fill="rgba(255,107,107,0.5)" font-family="NanumSquareNeo,sans-serif" font-weight="700">Data 3</text>
+              <text x="148" y="108" text-anchor="middle" font-size="9" fill="rgba(255,107,107,0.5)" font-family="NanumSquareNeo,sans-serif">💨 유실</text>
+              <!-- Data 4 -->
+              <line x1="40" y1="116" x2="197" y2="128" stroke="#ff6b6b" stroke-width="1.5" marker-end="url(#ah-r)"/>
+              <text x="120" y="112" text-anchor="middle" font-size="10" fill="#ff6b6b" font-family="NanumSquareNeo,sans-serif" font-weight="700">Data 4</text>
+              <text x="120" y="143" text-anchor="middle" font-size="10" fill="rgba(255,107,107,0.6)" font-family="NanumSquareNeo,sans-serif" font-weight="700">⚡ 재전송 없음 — 속도 우선</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 9: QUIC ===== -->
+  <section class="slide slide--default">
+    <div class="slide__inner slide__inner--wide">
+      <div class="label label--green">CHAPTER 07 — 2/2</div>
+      <h2>QUIC — <span class="em--green">HTTP/3의 기반</span></h2>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">TCP는 신뢰성이 있지만 느리고, UDP는 빠르지만 신뢰할 수 없습니다. <strong style="color:var(--text-dim)">둘의 장점만 합치면?</strong> 그것이 QUIC입니다.</p>
+      <div class="divider"></div>
+
+      <!-- 합성 다이어그램 (compact) -->
+      <div style="display:flex;align-items:stretch;gap:8px;">
+        <div style="flex:1;background:rgba(0,212,255,0.07);border:1px solid rgba(0,212,255,0.2);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:12px;font-weight:800;color:var(--cyan);">🔗 TCP에서</div>
+          <div style="font-size:11px;color:var(--text-dim);line-height:1.6;">순서 보장 · 재전송<br>혼잡 제어</div>
+        </div>
+        <div style="display:flex;align-items:center;font-size:22px;font-weight:300;color:var(--text-muted);flex-shrink:0;padding:0 2px;">+</div>
+        <div style="flex:1;background:rgba(255,107,107,0.07);border:1px solid rgba(255,107,107,0.2);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:12px;font-weight:800;color:var(--coral);">⚡ UDP에서</div>
+          <div style="font-size:11px;color:var(--text-dim);line-height:1.6;">빠른 전송<br>낮은 오버헤드</div>
+        </div>
+        <div style="display:flex;align-items:center;font-size:22px;color:var(--green);font-weight:700;flex-shrink:0;padding:0 2px;">→</div>
+        <div style="flex:1.2;background:rgba(61,214,140,0.08);border:2px solid rgba(61,214,140,0.32);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:13px;font-weight:900;color:var(--green);">🚀 QUIC</div>
+          <div style="font-size:11px;color:var(--text-dim);line-height:1.6;">신뢰성 + 속도<br>TLS 1.3 내장</div>
+        </div>
+      </div>
+
+      <!-- 개선 상세: 2열 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+
+        <!-- 연결 수립 RTT 개선 -->
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;display:flex;flex-direction:column;gap:10px;">
+          <p style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.08em;">🔄 연결 수립 속도 개선</p>
+          <p style="font-size:12px;color:var(--text-dim);line-height:1.6;">TCP는 <strong>3-Way Handshake (1 RTT)</strong>와 <strong>TLS 1.2 Handshake (2 RTT)</strong>를 따로따로 수행. QUIC는 둘을 <strong style="color:var(--green)">한 번에</strong> 처리합니다.</p>
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            <div>
+              <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">HTTP/2 (TCP 3-Way + TLS 1.2)</div>
+              <div style="display:flex;gap:3px;align-items:center;">
+                <div style="display:flex;gap:3px;flex:1;">
+                  <div style="height:12px;flex:1;background:rgba(255,107,107,0.35);border-radius:3px;"></div>
+                  <div style="height:12px;flex:1;background:rgba(255,107,107,0.35);border-radius:3px;"></div>
+                  <div style="height:12px;flex:1;background:rgba(255,107,107,0.35);border-radius:3px;"></div>
+                </div>
+                <span style="font-size:10px;color:var(--coral);margin-left:6px;width:40px;text-align:right;flex-shrink:0;">3 RTT</span>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--green);margin-bottom:3px;font-weight:700;">QUIC (연결 + 암호화 동시)</div>
+              <div style="display:flex;gap:3px;align-items:center;">
+                <div style="display:flex;gap:3px;flex:1;">
+                  <div style="height:12px;flex:1;background:rgba(61,214,140,0.4);border-radius:3px;"></div>
+                  <div style="height:12px;flex:1;background:rgba(255,255,255,0.05);border-radius:3px;border:1px dashed rgba(255,255,255,0.1);"></div>
+                  <div style="height:12px;flex:1;background:rgba(255,255,255,0.05);border-radius:3px;border:1px dashed rgba(255,255,255,0.1);"></div>
+                </div>
+                <span style="font-size:10px;color:var(--green);margin-left:6px;width:40px;text-align:right;flex-shrink:0;font-weight:700;">1 RTT</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HOL 블로킹 해결 -->
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;display:flex;flex-direction:column;gap:10px;">
+          <p style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.08em;">🚧 HOL (Head-of-Line) 블로킹 해결</p>
+          <p style="font-size:12px;color:var(--text-dim);line-height:1.6;">HTTP/2는 TCP 위에서 멀티플렉싱을 구현했지만, TCP 레벨에서는 하나의 패킷 유실이 <strong style="color:var(--coral)">전체 스트림을 멈춥니다.</strong> QUIC는 스트림을 <strong style="color:var(--green)">완전히 독립</strong> 처리합니다.</p>
+          <!-- 스트림 비교 -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <!-- HTTP/2 -->
+            <div>
+              <div style="font-size:10px;font-weight:700;color:var(--coral);margin-bottom:6px;">HTTP/2 (TCP)</div>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <span style="font-size:9px;color:var(--text-muted);width:40px;text-align:right;flex-shrink:0;">S1</span>
+                  <div style="height:11px;flex:1;background:rgba(0,212,255,0.35);border-radius:2px;display:flex;align-items:center;padding-left:4px;"><span style="font-size:8px;color:var(--cyan);">✓</span></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <span style="font-size:9px;color:var(--text-muted);width:40px;text-align:right;flex-shrink:0;">S2</span>
+                  <div style="height:11px;width:35%;background:rgba(255,107,107,0.4);border-radius:2px 0 0 2px;"></div>
+                  <span style="font-size:9px;color:var(--coral);">🚫</span>
+                  <div style="height:11px;flex:1;background:rgba(255,255,255,0.04);border-radius:0 2px 2px 0;border:1px dashed rgba(255,107,107,0.25);"></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <span style="font-size:9px;color:var(--text-muted);width:40px;text-align:right;flex-shrink:0;">S3</span>
+                  <div style="height:11px;flex:1;background:rgba(255,255,255,0.04);border-radius:2px;border:1px dashed rgba(255,255,255,0.1);display:flex;align-items:center;padding-left:4px;"><span style="font-size:8px;color:var(--text-muted);">⏳ 대기</span></div>
+                </div>
+              </div>
+            </div>
+            <!-- QUIC -->
+            <div>
+              <div style="font-size:10px;font-weight:700;color:var(--green);margin-bottom:6px;">HTTP/3 (QUIC)</div>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <span style="font-size:9px;color:var(--text-muted);width:40px;text-align:right;flex-shrink:0;">S1</span>
+                  <div style="height:11px;flex:1;background:rgba(0,212,255,0.35);border-radius:2px;display:flex;align-items:center;padding-left:4px;"><span style="font-size:8px;color:var(--cyan);">✓</span></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <span style="font-size:9px;color:var(--text-muted);width:40px;text-align:right;flex-shrink:0;">S2</span>
+                  <div style="height:11px;width:35%;background:rgba(255,107,107,0.4);border-radius:2px 0 0 2px;"></div>
+                  <span style="font-size:9px;color:var(--coral);">🚫</span>
+                  <div style="height:11px;width:20%;background:rgba(255,107,107,0.25);border-radius:0 2px 2px 0;display:flex;align-items:center;padding-left:3px;"><span style="font-size:7px;color:var(--coral);">재전송</span></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <span style="font-size:9px;color:var(--text-muted);width:40px;text-align:right;flex-shrink:0;">S3</span>
+                  <div style="height:11px;flex:1;background:rgba(61,214,140,0.35);border-radius:2px;display:flex;align-items:center;padding-left:4px;"><span style="font-size:8px;color:var(--green);font-weight:700;">✓ 독립!</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE: QUIC WHY UDP ===== -->
+  <section class="slide slide--default">
+    <div class="slide__inner">
+      <div class="label label--green">CHAPTER 07 — 보충</div>
+      <h2>왜 <span class="em--coral">빠른 TCP</span>가 아닌 <span class="em--green">UDP</span> 일까?</h2>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">QUIC = <strong style="color:var(--coral);">Quick <s>TCP</s></strong> <strong style="color:var(--green);">UDP</strong> Internet Connections — 왜 TCP가 아닌 UDP일까?</p>
+      <div class="divider"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <p style="font-size:11px;font-weight:700;color:var(--coral);letter-spacing:0.08em;">❌ TCP 헤더 — 너무 복잡하다</p>
+          <img src="img.png" style="width:100%;border-radius:6px;">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <p style="font-size:11px;font-weight:700;color:var(--green);letter-spacing:0.08em;">✅ UDP 헤더 — 빈 도화지</p>
+          <img src="img_1.png" style="width:100%;border-radius:6px;">
+        </div>
+      </div>
+
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:12px 18px;display:flex;gap:12px;margin-top:4px;">
+        <span style="font-size:20px;flex-shrink:0;">💡</span>
+        <p style="font-size:12px;color:var(--text-dim);line-height:1.8;">TCP는 오랜 역사 동안 수많은 표준이 정의되고 다양한 OS·브라우저·하드웨어에 구현되어 있습니다. 각기 다른 이해관계자들의 요구사항을 동시에 충족하기도 어렵고, <strong style="color:var(--coral)">수정이 사실상 불가능</strong>합니다. 그래서 <strong style="color:var(--green)">하얀 도화지 같은 UDP</strong>가 선택되었고, 그 위에 혼잡 제어·흐름 제어·오류 제어 등 신뢰성 로직을 직접 구현한 것이 QUIC입니다.</p>
+      </div>
+    </div>
+  </section>
+
+<!-- ===== SLIDE 10: CLOSING ===== -->
+  <section class="slide slide--title">
+    <div class="glow-orb" style="width:400px;height:400px;background:rgba(61,214,140,0.09);top:80px;right:60px;"></div>
+    <div class="glow-orb" style="width:280px;height:280px;background:rgba(0,212,255,0.07);bottom:80px;left:100px;"></div>
+    <div class="slide__inner closing-inner">
+      <div class="label" style="align-self:center;">THANK YOU</div>
+      <h2 class="gradient-text">감사합니다 🙌</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+        <span class="tag tag--cyan">노드 · 패킷 · 라우터</span>
+        <span class="tag tag--green">IP · DNS · NAT · VPN</span>
+        <span class="tag tag--coral">TCP · UDP · QUIC</span>
+      </div>
+      <p style="font-size:13px;color:var(--text-muted);">주니어 백엔드 개발자 스터디 — 10장 네트워크</p>
+    </div>
+  </section>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>
